@@ -67,7 +67,7 @@ class Board:
         m, n = self.parse_pos(pos)
         return self.board_format[m][n]
     
-    def is_legal_knight_move(self, m1, n1, m2, n2):
+    def is_legal_knight_move(self, m1, n1, m2, n2) -> bool:
         row_diff = abs(m1 - m2)
         col_diff = abs(n1 - n2)
 
@@ -82,7 +82,7 @@ class Board:
             return True
         return False
     
-    def is_legal_rook_move(self, m1, n1, m2, n2):
+    def is_legal_rook_move(self, m1, n1, m2, n2) -> bool:
         if m1 != m2 and n1 != n2: # Must be same row or column
             return False
         
@@ -101,6 +101,40 @@ class Board:
         if target != "0" and target[0] == self.board_format[m1][n1][0]: # friendly fire check
             return False
         return True
+    
+    def is_legal_bishop_move(self, m1, n1, m2, n2) -> bool:
+        row_diff = abs(m1 - m2)
+        col_diff = abs(n1 - n2)
+
+        if row_diff != col_diff: # Perfect diagonal
+            return False
+        
+        row_step = (1 if m2 > m1 else -1)
+        col_step = (1 if n2 > n1 else -1)
+
+        curr_m, curr_n = m1 + row_step, n1 + col_step
+        while (curr_m, curr_n) != (m2, n2):
+            if self.board_format[curr_m][curr_n] != "0":
+                return False
+            curr_m += row_step
+            curr_n += col_step
+
+        target = self.board_format[m2][n2]
+        if target != "0" and target[0] == self.board_format[m1][n1][0]: # friendly fire check
+            return False
+        return True
+    
+    def is_legal_king_move(self, m1, n1, m2, n2) -> bool:
+        row_diff = abs(m1 - m2)
+        col_diff = abs(n1 - n2)
+
+        if row_diff <= 1 and col_diff <= 1:
+            target = self.board_format[m2][n2]
+            if target != "0" and target[0] == self.board_format[m1][n1][0]: # Friendly fire check 0-0
+                return False
+            return True
+        return False
+    
 
     def move(self, pos1: str, pos2: str) -> bool:
         m1, n1 = self.parse_pos(pos1)
@@ -111,8 +145,15 @@ class Board:
             if not self.is_legal_knight_move(m1, n1, m2, n2):
                 return False
         elif piece.endswith("R"):
-            if not self.is_legal_rook_move(m1,n1,m2,n2):
+            if not self.is_legal_rook_move(m1, n1, m2, n2):
                 return False
+        elif piece.endswith("B"):
+            if not self.is_legal_bishop_move(m1, n1, m2, n2):
+                return False
+        elif piece.endswith("Q"):
+            if not self.is_legal_bishop_move(m1, n1, m2, n2) or not self.is_legal_rook_move:
+                return False
+        
 
         self.board_format[m2][n2] = self.what_in_pos(pos1)
         self.board_format[m1][n1] = "0"
