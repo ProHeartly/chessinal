@@ -1,3 +1,32 @@
+Horizontal {
+    height: 100%;
+}
+
+#sidebar {
+    width: 30;
+    background: $panel;
+    dock: right;
+    border-left: tall $accent;
+    padding: 1;
+}
+
+#history-list {
+    height: 1fr;
+    border: solid $accent;
+}
+
+#sidebar-title {
+    background: $primary;
+    color: white;
+    padding: 1;
+    margin-bottom: 1;
+    text-align: center;
+}
+
+ListItem {
+    padding: 0 1;
+}
+
 #board-grid {
     layout: grid;
     grid-size: 8 8;

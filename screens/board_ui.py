@@ -1,6 +1,6 @@
 from textual.app import ComposeResult
-from textual.widgets import Button, Header, Footer, Static
-from textual.containers import Grid, Center
+from textual.widgets import Button, Header, Footer, Static, Label, ListView, ListItem
+from textual.containers import Grid, Center, Horizontal, Vertical
 from textual.screen import Screen
 
 class BoardScreen(Screen):
@@ -11,18 +11,23 @@ class BoardScreen(Screen):
 
     def compose(self) -> ComposeResult:
         yield Header()
-        with Center():
-            with Grid(id="board-grid"):
-                for m in range(7,-1, -1):
-                    for n in range(8):
-                        piece = self.board_logic.board_format[m][n]
-                        label = " " if piece == "0" else piece
-                        
-                        pos_name = self.board_logic.to_chess_notation(m,n)
-                        btn = Button(label, id=pos_name)
+        with Horizontal():
+            with Center():
+                with Grid(id="board-grid"):
+                    for m in range(7,-1, -1):
+                        for n in range(8):
+                            piece = self.board_logic.board_format[m][n]
+                            label = " " if piece == "0" else piece
+                            
+                            pos_name = self.board_logic.to_chess_notation(m,n)
+                            btn = Button(label, id=pos_name)
 
-                        btn.add_class("light" if (m + n) % 2 != 0 else "dark")
-                        yield btn
+                            btn.add_class("light" if (m + n) % 2 != 0 else "dark")
+                            yield btn
+                with Vertical(id="sidebar"):
+                    yield Label("Move History", id="sidebar-title")
+                    yield Label(f"Current Turn: White", id="turn-display")
+                    yield ListView(id="history-list")
         yield Footer()
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
@@ -57,3 +62,11 @@ class BoardScreen(Screen):
                 label = " " if piece == "0" else piece
                 pos_name = self.board_logic.to_chess_notation(m, n)
                 self.query_one(f"#{pos_name}", Button).label = label
+
+        turn_label = self.query_one("#turn-display", Label)
+        turn_text = "WHITE" if self.board_logic.turn == "w" else "BLACK"
+        turn_label.update(f"Current Turn: {turn_text}")
+
+        if self.board_logic.move_history:
+            last_move = self.board_logic.move_history[-1]
+            self.query_one("#history-list", ListView).append(ListItem(Label(last_move)))

@@ -51,6 +51,9 @@ class Board:
             [self.b_pawn, self.b_pawn, self.b_pawn, self.b_pawn, self.b_pawn, self.b_pawn, self.b_pawn, self.b_pawn],
             [self.b_rook, self.b_knight, self.b_bishop, self.b_queen, self.b_king, self.b_bishop, self.b_knight, self.b_rook],
         ] # I typed this all with my handss
+
+        self.turn = "w" # "w" for white and "b" for black-
+        self.move_history = []
         
     def to_chess_notation(self, m: int, n: int):
         # (0, 0) -> "a1"
@@ -163,6 +166,9 @@ class Board:
         m2, n2 = self.parse_pos(pos2)
         piece = self.board_format[m1][n1]
 
+        if not piece.startswith(self.turn):
+            return False
+
         if piece.endswith("N"):
             if not self.is_legal_knight_move(m1, n1, m2, n2):
                 return False
@@ -173,7 +179,7 @@ class Board:
             if not self.is_legal_bishop_move(m1, n1, m2, n2):
                 return False
         elif piece.endswith("Q"):
-            if not self.is_legal_bishop_move(m1, n1, m2, n2) or not self.is_legal_rook_move:
+            if not self.is_legal_bishop_move(m1, n1, m2, n2) and not self.is_legal_rook_move:
                 return False
         elif piece.endswith("K"):
             if not self.is_legal_king_move(m1, n1, m2, n2):
@@ -182,8 +188,12 @@ class Board:
             if not self.is_legal_pawn_move(m1, n1, m2, n2):
                 return False
         
+        
+        move_str = f"{piece}:{pos1}->{pos2}"
+        self.move_history.append(move_str)
 
-        self.board_format[m2][n2] = self.what_in_pos(pos1)
+        self.board_format[m2][n2] = piece
         self.board_format[m1][n1] = "0"
+        self.turn = "b" if self.turn == "w" else "w" # Flip turn
         return True
         
