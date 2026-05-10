@@ -135,6 +135,28 @@ class Board:
             return True
         return False
     
+    def is_legal_pawn_move(self, m1, n1, m2, n2) -> bool:
+        piece = self.board_format[m1][n1]
+        direction = 1 if piece.startswith("w") else -1
+        start_row = 1 if piece.startswith("w") else 6
+
+        target = self.board_format[m2][n2]
+
+        if n1 == n2 and target == "0": # Single square move
+            if m2 == m1 + direction:
+                return True
+            
+            if m1 == start_row and m2 == m1 + 2 * direction: # The begining 2 square move
+                if self.board_format[m1 + direction][n1] == "0":
+                    return True
+
+        # First part was easy but I gotta think a little for diagonal *thinking*  
+
+        if abs(n1 - n2) == 1 and m2 == m1 + direction:
+            if target != "0" and target[0] != piece[0]: # checks for piece + friendly fire :DDD
+                return True
+            
+        return False
 
     def move(self, pos1: str, pos2: str) -> bool:
         m1, n1 = self.parse_pos(pos1)
@@ -152,6 +174,12 @@ class Board:
                 return False
         elif piece.endswith("Q"):
             if not self.is_legal_bishop_move(m1, n1, m2, n2) or not self.is_legal_rook_move:
+                return False
+        elif piece.endswith("K"):
+            if not self.is_legal_king_move(m1, n1, m2, n2):
+                return False
+        elif piece.endswith("P"):
+            if not self.is_legal_pawn_move(m1, n1, m2, n2):
                 return False
         
 
