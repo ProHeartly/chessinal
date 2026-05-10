@@ -39,8 +39,12 @@ class BoardScreen(Screen):
                 self.selected_pos = None
                 return
 
-            self.board_logic.move(self.selected_pos, current_pos)
-            self.update_board_ui()
+            sucess = self.board_logic.move(self.selected_pos, current_pos)
+
+            if sucess:
+                self.update_board_ui()
+            else:
+                self.app.notify("Invalid move!!", severity="error")
 
             # Reset
             self.query_one(f"#{self.selected_pos}").remove_class("selected")

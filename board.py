@@ -67,10 +67,31 @@ class Board:
         m, n = self.parse_pos(pos)
         return self.board_format[m][n]
     
-    def move(self, pos1: str, pos2: str) -> None | str:
+    def is_legal_knight_move(self, m1, n1, m2, n2):
+        row_diff = abs(m1 - m2)
+        col_diff = abs(n1 - n2)
+
+        # A knight moves in L shape (2, 1) or (1, 2)
+        if (row_diff == 2 and col_diff == 1) or (row_diff == 1 and col_diff == 2):
+            start_piece = self.board_format[m1][n1]
+            end_piece = self.board_format[m2][n2]
+
+            if end_piece != "0":
+                if start_piece[0] == end_piece[0]:
+                    return False
+            return True
+        return False
+    
+    def move(self, pos1: str, pos2: str) -> bool:
         m1, n1 = self.parse_pos(pos1)
         m2, n2 = self.parse_pos(pos2)
+        piece = self.board_format[m1][n1]
+
+        if piece.endswith("N"):
+            if not self.is_legal_knight_move(m1, n1, m2, n2):
+                return False
 
         self.board_format[m2][n2] = self.what_in_pos(pos1)
         self.board_format[m1][n1] = "0"
+        return True
         

@@ -4,6 +4,7 @@ from screens.board_ui import BoardScreen
 
 
 # Version -> Alpha 1: Making a functionable chess game in terminal..
+# Version -> Alpha 1.1: Adding check for knight moveset and friendly fire :D
 
 class ChessApp(App):
     CSS_PATH = "style.tcss"
