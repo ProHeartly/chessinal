@@ -77,11 +77,31 @@ class Board:
             end_piece = self.board_format[m2][n2]
 
             if end_piece != "0":
-                if start_piece[0] == end_piece[0]:
+                if start_piece[0] == end_piece[0]: # Friendly fire check
                     return False
             return True
         return False
     
+    def is_legal_rook_move(self, m1, n1, m2, n2):
+        if m1 != m2 and n1 != n2: # Must be same row or column
+            return False
+        
+        row_step = 0 if m1 == m2 else (1 if m2 > m1 else -1)
+        col_step = 0 if n1 == n2 else (1 if n2 > n1 else -1)
+
+        curr_m, curr_n = m1 + row_step, n1 + col_step
+
+        while (curr_m, curr_n) != (m2, n2):
+            if self.board_format[curr_m][curr_n] != "0":
+                return False
+            curr_m += row_step
+            curr_n += col_step
+
+        target = self.board_format[m2][n2]
+        if target != "0" and target[0] == self.board_format[m1][n1][0]: # friendly fire check
+            return False
+        return True
+
     def move(self, pos1: str, pos2: str) -> bool:
         m1, n1 = self.parse_pos(pos1)
         m2, n2 = self.parse_pos(pos2)
@@ -89,6 +109,9 @@ class Board:
 
         if piece.endswith("N"):
             if not self.is_legal_knight_move(m1, n1, m2, n2):
+                return False
+        elif piece.endswith("R"):
+            if not self.is_legal_rook_move(m1,n1,m2,n2):
                 return False
 
         self.board_format[m2][n2] = self.what_in_pos(pos1)
