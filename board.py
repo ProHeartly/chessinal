@@ -54,6 +54,11 @@ class Board:
 
         self.turn = "w" # "w" for white and "b" for black-
         self.move_history = []
+        self.en_passant_target = None
+        self.moved_status = {
+            "wK": False, "wR_a": False, "wR_h": False,
+            "bK": False, "bR_a": False, "bR_h": False
+        }
         
     def to_chess_notation(self, m: int, n: int):
         # (0, 0) -> "a1"
@@ -160,40 +165,111 @@ class Board:
                 return True
             
         return False
+    
+    def can_castle(self, side: str) -> bool:
+        # side is "w_king", "w_queen", "b_king", "b_queen"
+        color = side[0]
+        row = 0 if color == "w" else 7
 
+        if self.moved_status[f"{color}K"]:
+            return False
+        
+        if "king" in side:
+            rook_key = f"{color}R_h"
+            path = [5, 6]
+        else:
+            rook_key = f"{color}R_a"
+            path = [1, 2, 3]
+
+        if self.moved_status[rook_key]:
+            return False
+        
+        for col in path:
+            if self.board_format[row][col] != "0":
+                return False
+            
+        return True
+    
     def move(self, pos1: str, pos2: str) -> bool:
         m1, n1 = self.parse_pos(pos1)
         m2, n2 = self.parse_pos(pos2)
         piece = self.board_format[m1][n1]
+        direction = 1 if piece.startswith("w") else -1
 
         if not piece.startswith(self.turn):
             return False
-
-        if piece.endswith("N"):
-            if not self.is_legal_knight_move(m1, n1, m2, n2):
-                return False
-        elif piece.endswith("R"):
-            if not self.is_legal_rook_move(m1, n1, m2, n2):
-                return False
-        elif piece.endswith("B"):
-            if not self.is_legal_bishop_move(m1, n1, m2, n2):
-                return False
-        elif piece.endswith("Q"):
-            if not self.is_legal_bishop_move(m1, n1, m2, n2) and not self.is_legal_rook_move:
-                return False
-        elif piece.endswith("K"):
-            if not self.is_legal_king_move(m1, n1, m2, n2):
-                return False
-        elif piece.endswith("P"):
-            if not self.is_legal_pawn_move(m1, n1, m2, n2):
-                return False
         
-        
-        move_str = f"{piece}:{pos1}->{pos2}"
-        self.move_history.append(move_str)
+        move_note = ""
 
-        self.board_format[m2][n2] = piece
-        self.board_format[m1][n1] = "0"
-        self.turn = "b" if self.turn == "w" else "w" # Flip turn
+        if piece.endswith("K") and abs(n1 - n2) == 2: # Castle logic
+            side_str = "king" if n2 > n1 else "queen" # long castle or short castle
+            castle_key = f"{piece[0]}_{side_str}"
+            if not self.can_castle(castle_key):
+                return False
+            
+            # Movement of rookiiieee
+            row = m1
+            if side_str == "king":
+                self.board_format[row][5] = self.board_format[row][7]
+                self.board_format[row][7] = "0"
+                move_note = "O-O"
+
+            else:
+                self.board_format[row][3] = self.board_format[row][0]
+                self.board_format[row][0] = "0"
+                move_note = "O-O-O"
+            
+            # Movement of kING-kun
+            self.board_format[m2][n2] = piece
+            self.board_format[m1][n1] = "0"
+            self.moved_status[f"{piece[0]}K"] = True
+
+        else:
+            legal = False
+            if piece.endswith("N"):
+                legal = self.is_legal_knight_move(m1, n1, m2, n2)
+            elif piece.endswith("R"):
+                legal = self.is_legal_rook_move(m1, n1, m2, n2)
+            elif piece.endswith("B"):
+                legal = self.is_legal_bishop_move(m1, n1, m2, n2)
+            elif piece.endswith("Q"):
+                legal = self.is_legal_rook_move(m1, n1, m2, n2) or self.is_legal_bishop_move(m1, n1, m2, n2)
+            elif piece.endswith("K"):
+                legal = self.is_legal_king_move(m1, n1, m2, n2)
+            elif piece.endswith("P"):
+                is_ep = abs(n1 - n2) == 1 and m2 == m1 + direction and (m2, n2) == self.en_passant_target
+                if is_ep: # En passant checkkkk
+                    self.board_format[m1][n2] = "0"
+                    legal = True
+                    move_note = f"{pos1}x{pos2} (En Passant)"
+                else:
+                    legal = self.is_legal_pawn_move(m1, n1, m2, n2)
+
+            if not legal: return False
+            
+            # Execute Move
+            self.board_format[m2][n2] = piece
+            self.board_format[m1][n1] = "0"
+
+            # Update Moved Status for future castling
+            if piece.endswith("K"): self.moved_status[f"{piece[0]}K"] = True
+            if piece.endswith("R"):
+                suffix = "a" if n1 == 0 else "h"
+                self.moved_status[f"{piece[0]}R_{suffix}"] = True
+
+            # Promotion & En Passant state
+            if piece.endswith("P"):
+                if m2 in [0, 7]:
+                    self.board_format[m2][n2] = piece[0] + "Q"
+                    move_note = f"{pos2}=Q"
+                self.en_passant_target = (m1 + direction, n1) if abs(m1 - m2) == 2 else None
+            else:
+                self.en_passant_target = None
+
+        if not move_note:
+            move_note = f"{piece}:{pos1}->{pos2}"
+
+        self.move_history.append(move_note)
+        self.turn = "b" if self.turn == "w" else "w"
         return True
         
