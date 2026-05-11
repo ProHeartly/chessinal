@@ -60,11 +60,11 @@ class Board:
             "bK": False, "bR_a": False, "bR_h": False
         }
         
-    def to_chess_notation(self, m: int, n: int):
+    def to_chess_notation(self, m: int, n: int) -> str:
         # (0, 0) -> "a1"
         return f"{self.inv_alpha[n]}{m+1}"
     
-    def parse_pos(self, pos:str):
+    def parse_pos(self, pos:str) -> int:
         # "a1" -> (0, 0)
         n = self.alpha[pos[0].lower()]
         m = int(pos[1]) - 1
@@ -75,14 +75,61 @@ class Board:
         m, n = self.parse_pos(pos)
         return self.board_format[m][n]
     
-    def is_legal_knight_move(self, m1, n1, m2, n2) -> bool:
+    def find_king(self, color: str, board=None) -> int | None:
+        if board is None:
+            board = self.board_format
+        for m in range(8):
+            for n in range(8):
+                if board[m][n] == f"{color}K":
+                    return m, n
+        return None
+    
+    def is_square_attacked(self, target_m, target_n, attacker_color, board=None) -> bool:
+        if board is None:
+            board = self.board_format
+        
+        for m in range(8):
+            for n in range(8):
+                piece = board[m][n]
+                if piece != "0" and piece.startswith(attacker_color):
+                    if piece.endswith("N"):
+                        attack = self.is_legal_knight_move(m, n, target_m, target_n, board=board)
+                    elif piece.endswith("B"):
+                        attack = self.is_legal_bishop_move(m, n, target_m, target_n, board=board)
+                    elif piece.endswith("R"):
+                        attack = self.is_legal_rook_move(m, n, target_m, target_n, board=board)
+                    elif piece.endswith("Q"):
+                        attack = self.is_legal_bishop_move(m, n, target_m, target_n, board=board) or self.is_legal_rook_move(m, n, target_m, target_n, board=board)
+                    elif piece.endswith("K"):
+                        attack = abs(m - target_m) <= 1 and abs(n - target_n) <= 1
+                    elif piece.endswith("P"):
+                        direction = 1 if piece.startswith("w") else -1
+                        attack = target_m == m + direction and abs(target_n - n) == 1
+
+                    if attack: return True
+                    
+        return False
+    
+    def would_be_in_check(self, m1, n1, m2, n2, color):
+        temp_board = [row[:] for row in self.board_format]
+        temp_board[m2][n2] = temp_board[m1][n1]
+        temp_board[m1][n1] = "0"
+        
+        km, kn = self.find_king(color, board=temp_board)
+
+        enemy_color = "b" if color == "w" else "w"
+        return self.is_square_attacked(km, kn, enemy_color, board=temp_board)
+    
+    def is_legal_knight_move(self, m1, n1, m2, n2, board=None) -> bool:
+        if board is None:
+            board = self.board_format
         row_diff = abs(m1 - m2)
         col_diff = abs(n1 - n2)
 
         # A knight moves in L shape (2, 1) or (1, 2)
         if (row_diff == 2 and col_diff == 1) or (row_diff == 1 and col_diff == 2):
-            start_piece = self.board_format[m1][n1]
-            end_piece = self.board_format[m2][n2]
+            start_piece = board[m1][n1]
+            end_piece = board[m2][n2]
 
             if end_piece != "0":
                 if start_piece[0] == end_piece[0]: # Friendly fire check
@@ -90,7 +137,10 @@ class Board:
             return True
         return False
     
-    def is_legal_rook_move(self, m1, n1, m2, n2) -> bool:
+    def is_legal_rook_move(self, m1, n1, m2, n2, board=None) -> bool:
+        if board is None:
+            board = self.board_format
+
         if m1 != m2 and n1 != n2: # Must be same row or column
             return False
         
@@ -100,17 +150,20 @@ class Board:
         curr_m, curr_n = m1 + row_step, n1 + col_step
 
         while (curr_m, curr_n) != (m2, n2):
-            if self.board_format[curr_m][curr_n] != "0":
+            if board[curr_m][curr_n] != "0":
                 return False
             curr_m += row_step
             curr_n += col_step
 
-        target = self.board_format[m2][n2]
-        if target != "0" and target[0] == self.board_format[m1][n1][0]: # friendly fire check
+        target = board[m2][n2]
+        if target != "0" and target[0] == board[m1][n1][0]: # friendly fire check
             return False
         return True
     
-    def is_legal_bishop_move(self, m1, n1, m2, n2) -> bool:
+    def is_legal_bishop_move(self, m1, n1, m2, n2, board=None) -> bool:
+        if board is None:
+            board = self.board_format
+        
         row_diff = abs(m1 - m2)
         col_diff = abs(n1 - n2)
 
@@ -122,40 +175,46 @@ class Board:
 
         curr_m, curr_n = m1 + row_step, n1 + col_step
         while (curr_m, curr_n) != (m2, n2):
-            if self.board_format[curr_m][curr_n] != "0":
+            if board[curr_m][curr_n] != "0":
                 return False
             curr_m += row_step
             curr_n += col_step
 
-        target = self.board_format[m2][n2]
-        if target != "0" and target[0] == self.board_format[m1][n1][0]: # friendly fire check
+        target = board[m2][n2]
+        if target != "0" and target[0] == board[m1][n1][0]: # friendly fire check
             return False
         return True
     
-    def is_legal_king_move(self, m1, n1, m2, n2) -> bool:
+    def is_legal_king_move(self, m1, n1, m2, n2, board=None) -> bool:
+        if board is None:
+            board = self.board_format
+
         row_diff = abs(m1 - m2)
         col_diff = abs(n1 - n2)
 
         if row_diff <= 1 and col_diff <= 1:
-            target = self.board_format[m2][n2]
-            if target != "0" and target[0] == self.board_format[m1][n1][0]: # Friendly fire check 0-0
+            target = board[m2][n2]
+            if target != "0" and target[0] == board[m1][n1][0]: # Friendly fire check 0-0
                 return False
             return True
         return False
     
-    def is_legal_pawn_move(self, m1, n1, m2, n2) -> bool:
-        piece = self.board_format[m1][n1]
+    def is_legal_pawn_move(self, m1, n1, m2, n2, board=None) -> bool:
+        if board is None:
+            board = self.board_format
+
+        piece = board[m1][n1]
         direction = 1 if piece.startswith("w") else -1
         start_row = 1 if piece.startswith("w") else 6
 
-        target = self.board_format[m2][n2]
+        target = board[m2][n2]
 
         if n1 == n2 and target == "0": # Single square move
             if m2 == m1 + direction:
                 return True
             
             if m1 == start_row and m2 == m1 + 2 * direction: # The begining 2 square move
-                if self.board_format[m1 + direction][n1] == "0":
+                if board[m1 + direction][n1] == "0":
                     return True
 
         # First part was easy but I gotta think a little for diagonal *thinking*  
@@ -166,7 +225,9 @@ class Board:
             
         return False
     
-    def can_castle(self, side: str) -> bool:
+    def can_castle(self, side: str, board=None) -> bool:
+        if board is None:
+            board = self.board_format
         # side is "w_king", "w_queen", "b_king", "b_queen"
         color = side[0]
         row = 0 if color == "w" else 7
@@ -185,7 +246,7 @@ class Board:
             return False
         
         for col in path:
-            if self.board_format[row][col] != "0":
+            if board[row][col] != "0":
                 return False
             
         return True
@@ -202,6 +263,9 @@ class Board:
         move_note = ""
 
         if piece.endswith("K") and abs(n1 - n2) == 2: # Castle logic
+            if self.would_be_in_check(m1, n1, m2, n2, self.turn):
+                return False
+            
             side_str = "king" if n2 > n1 else "queen" # long castle or short castle
             castle_key = f"{piece[0]}_{side_str}"
             if not self.can_castle(castle_key):
@@ -244,9 +308,12 @@ class Board:
                     move_note = f"{pos1}x{pos2} (En Passant)"
                 else:
                     legal = self.is_legal_pawn_move(m1, n1, m2, n2)
-
-            if not legal: return False
             
+            if not legal: return False
+            if self.would_be_in_check(m1, n1, m2, n2, self.turn):
+                return False
+            
+
             # Execute Move
             self.board_format[m2][n2] = piece
             self.board_format[m1][n1] = "0"
@@ -265,6 +332,8 @@ class Board:
                 self.en_passant_target = (m1 + direction, n1) if abs(m1 - m2) == 2 else None
             else:
                 self.en_passant_target = None
+        
+        
 
         if not move_note:
             move_note = f"{piece}:{pos1}->{pos2}"

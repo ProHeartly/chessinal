@@ -10,6 +10,7 @@ from screens.board_ui import BoardScreen
 # Version -> Alpha 1.4: Added pawn's moveset and ofc with friendly fire check :DDDDD. Easier than I thought.
 # Version -> Alpha 1.5: Added move log and turn based movement
 # Version -> Alpha 1.6: Added special cases like Pawn promotion, en passant and castling
+# Version -> Alpha 1.7: Added check and pinning.
 
 class ChessApp(App):
     CSS_PATH = "style.tcss"
