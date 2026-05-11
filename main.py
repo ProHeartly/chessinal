@@ -11,6 +11,7 @@ from screens.board_ui import BoardScreen
 # Version -> Alpha 1.5: Added move log and turn based movement
 # Version -> Alpha 1.6: Added special cases like Pawn promotion, en passant and castling
 # Version -> Alpha 1.7: Added check and pinning.
+# Version -> Alpha 1.8: Added game over, changed UI and made it look better! Also added checkmating and check check iykyk
 
 class ChessApp(App):
     CSS_PATH = "style.tcss"

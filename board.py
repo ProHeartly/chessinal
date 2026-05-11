@@ -341,4 +341,65 @@ class Board:
         self.move_history.append(move_note)
         self.turn = "b" if self.turn == "w" else "w"
         return True
+    
+    def get_all_legal_moves(self, color: str) -> list:
+        legal_moves = []
+        for m1 in range(8):
+            for n1 in range(8):
+                piece = self.board_format[m1][n1]
+                if piece.startswith(color):
+                    for m2 in range(8):
+                        for n2 in range(8):
+                            if self.is_legal_move_simple(m1, n1, m2, n2):
+                                if not self.would_be_in_check(m1, n1, m2, n2, color):
+                                    legal_moves.append(((m1, n1), (m2, n2)))
+        return legal_moves
+    
+    def is_legal_move_simple(self, m1, n1, m2, n2) -> bool:
+        piece = self.board_format[m1][n1]
+
+        if piece == "0": return False
+
+        target_piece = self.board_format[m2][n2]
+        if target_piece == "0" and target_piece[0] == piece[0]:
+            return False
+        
+        if piece.endswith("P"): return self.is_legal_pawn_move(m1, n1, m2, n2)
+        if piece.endswith("R"): return self.is_legal_rook_move(m1, n1, m2, n2)
+        if piece.endswith("N"): return self.is_legal_knight_move(m1, n1, m2, n2)
+        if piece.endswith("B"): return self.is_legal_bishop_move(m1, n1, m2, n2)
+        if piece.endswith("Q"): return self.is_legal_rook_move(m1, n1, m2, n2) or self.is_legal_bishop_move(m1, n1, m2, n2)
+        if piece.endswith("K"): return self.is_legal_king_move(m1, n1, m2, n2)
+        return False
+    
+    def check_game_over(self) -> str:
+        # Returns who won, "w" if white, "b" if black and "d" if draw
+        moves = self.get_all_legal_moves(self.turn)
+        if not moves:
+            km, kn = self.find_king(self.turn)
+            enemy_color = "b" if self.turn == "w" else "w"
+            if self.is_square_attacked(km, kn, enemy_color):
+                return enemy_color # Checkmate!
+            return "d" # Stalemate
+        return None
+    
+    def reset_board(self) -> None:
+        self.board_format = [
+            [self.w_rook, self.w_knight, self.w_bishop, self.w_queen, self.w_king, self.w_bishop, self.w_knight, self.w_rook],
+            [self.w_pawn, self.w_pawn, self.w_pawn, self.w_pawn, self.w_pawn, self.w_pawn, self.w_pawn, self.w_pawn],
+            ["0", "0", "0", "0", "0", "0", "0", "0"],
+            ["0", "0", "0", "0", "0", "0", "0", "0"],
+            ["0", "0", "0", "0", "0", "0", "0", "0"],
+            ["0", "0", "0", "0", "0", "0", "0", "0"],
+            [self.b_pawn, self.b_pawn, self.b_pawn, self.b_pawn, self.b_pawn, self.b_pawn, self.b_pawn, self.b_pawn],
+            [self.b_rook, self.b_knight, self.b_bishop, self.b_queen, self.b_king, self.b_bishop, self.b_knight, self.b_rook],
+        ]
+        
+        self.turn = "w"
+        self.move_history = []
+        self.en_passant_target = None
+        self.moved_status = {
+            "wK": False, "wR_a": False, "wR_h": False,
+            "bK": False, "bR_a": False, "bR_h": False
+        }
         

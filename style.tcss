@@ -32,29 +32,66 @@ ListItem {
     grid-size: 8 8;
     grid-columns: 1fr;
     grid-rows: 1fr;
-    width: 80;
-    height: 34;
+    width: 100;
+    height: 50;
     align: center middle;
+    border: round gold;
+    padding: 0;
+    margin: 1;
+}
+
+ChessPiece {
+    width: 1fr;
+    height: 1fr;
+    content-align: center middle;
+    border: none;
+    min-width: 12;
+    min-height: 6;
+}
+
+ChessPiece > Label {
+    width: 100%;
+    height: 100%;
+    content-align: center middle;
+}
+
+ChessPiece:focus {
+    text-style: none;
     border: round gold;
 }
 
-Button {
-    width: 10;
-    height: 4;
-    border: none;
-    content-align: center middle;
+.light:hover, .light:focus {
+    background: #ebecd0;
+}
+
+.dark:hover, .dark:focus {
+    background: #779556;
 }
 
 .light {
     background: #ebecd0;
-    color: #779556;
+    color: #fdfdfd;
 }
 
 .dark {
     background: #779556;
-    color: #ebecd0;
+    color: #fdfdfd;
 }
 
 .selected {
     text-style: italic;
+}
+
+.piece {
+    text-style: bold;
+}
+
+#dialog {
+    width: 50;
+    height: 18;
+    background: $panel;
+    border: thick gold;
+    padding: 1 2;
+    content-align: center middle;
+    margin-top: 10;
 }
