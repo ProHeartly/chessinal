@@ -1,5 +1,5 @@
 # Chessinal
-![chessinal](updates_ss\update_5.png)
+![chessinal](updates_ss/update_5.png)
 
 **Chess in your terminal..** Build with textual library for those beautiful UI and custom script for chess mech. No heavy graphics, just raw logic and TUI :D. For now play with your friends by pass and play! later I will add multiplay (EXAMS ARE GOING ON RN SORRYYY!)
 
@@ -7,22 +7,22 @@
 ## Look at the ss of updates... or kinda devlogs of main UI.
 
 ### 1
-![chessinal](updates_ss\update_1.png)
+![chessinal](updates_ss/update_1.png)
 
 ### 2
-![chessinal](updates_ss\update_2.png)
+![chessinal](updates_ss/update_2.png)
 
 ### 3
-![chessinal](updates_ss\update_3.png)
+![chessinal](updates_ss/update_3.png)
 
 ### 4
-![chessinal](updates_ss\update_4.png)
+![chessinal](updates_ss/update_4.png)
 
 ### 5
-![chessinal](updates_ss\update_5.png)
+![chessinal](updates_ss/update_5.png)
 
 ### 6
-![chessinal](updates_ss\update_6.png)
+![chessinal](updates_ss/update_6.png)
 
 
 ## Build command
