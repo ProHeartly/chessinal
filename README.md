@@ -3,6 +3,15 @@
 
 **Chess in your terminal..** Build with textual library for those beautiful UI and custom script for chess mech. No heavy graphics, just raw logic and TUI :D. For now play with your friends by pass and play! later I will add multiplay (EXAMS ARE GOING ON RN SORRYYY!)
 
+## NOTE: For non-windows user, you won't be able to use compiled form so, you can clone the repo then run
+```
+pip install -r requirements.txt
+```
+## Then
+```
+python main.py
+```
+
 ## Nothing much to say..
 ## Look at the ss of updates... or kinda devlogs of main UI.
 
